@@ -7,10 +7,11 @@ const parseInput = (rawInput: string) => {
 function isSafe(line: number[]) {
   if (line.length <= 1) return true;
   let tendency = line[1] - line[0];
-  const monotonic = (a: number, b: number) => tendency > 0 ? a < b : a > b
+  const monotonic = (a: number, b: number) => (tendency > 0 ? a < b : a > b);
   return line.every(
     (num, i, arr) =>
-      i === 0 || (monotonic(arr[i - 1], num) && Math.abs(num - arr[i - 1]) <= 3),
+      i === 0 ||
+      (monotonic(arr[i - 1], num) && Math.abs(num - arr[i - 1]) <= 3),
   );
 }
 
@@ -23,8 +24,14 @@ const part1 = (rawInput: string) => {
 
 const part2 = (rawInput: string) => {
   const input = parseInput(rawInput);
-
-  return;
+  return input.reduce((acc, line) => {
+    for (let i = 0; i < line.length; i++) {
+      if (isSafe(line.toSpliced(i, 1))) {
+        return acc + 1;
+      }
+    }
+    return acc;
+  }, 0);
 };
 
 run({
