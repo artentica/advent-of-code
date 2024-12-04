@@ -19,13 +19,15 @@ const part1 = (rawInput: string) => {
 
 const part2 = (rawInput: string) => {
   const [left, right] = parseInput(rawInput).map(el => el.sort());
+  const recurenceleft: Record<string, number> = {}
   const recurenceRight: Record<string, number> = {}
   for(let i = 0; i < right.length; i++) {
+    recurenceleft[left[i].toString()] = (recurenceleft[left[i].toString()] ?? 0) + 1;
     recurenceRight[right[i].toString()] = (recurenceRight[right[i].toString()] ?? 0) + 1;
   }
 
-  return left.reduce((acc, key) => {
-    return acc + (recurenceRight[key.toString()] ?? 0) * key;
+  return Object.keys(recurenceleft).reduce((acc, key) => {
+    return acc + (recurenceleft[key] ?? 0) * (recurenceRight[key] ?? 0) * Number(key);
   }, 0);
 };
 
