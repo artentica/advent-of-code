@@ -1,75 +1,111 @@
-import run from "aocrunner";
+import run from 'aocrunner';
 type Rule = [number, number];
 
 const parseInput = (rawInput: string) => {
-  const [rulesInput, updatesInput] = rawInput.split("\n\n");
-  const rules = rulesInput.split("\n").map(line => line.split("|").map(Number) as Rule);
-  const updates = updatesInput.split("\n").map(line => line.split(",").map(Number));
-  return { rules, updates }
+  const [rulesInput, updatesInput] = rawInput.split('\n\n');
+  const rules = rulesInput
+    .split('\n')
+    .map((line) => line.split('|').map(Number) as Rule);
+  const updates = updatesInput
+    .split('\n')
+    .map((line) => line.split(',').map(Number));
+  return { rules, updates };
 };
 
 const getMiddlePage = (updates: number[]) => {
-  return updates[(updates.length - 1)/2];
-}
+  return updates[(updates.length - 1) / 2];
+};
 
 const checkUpdate = (rules: Record<number, number[]>, update: number[]) => {
   for (let i = 0; i < update.length; i++) {
     const element = update[i];
     const elementToCheck = rules[element];
-    if(elementToCheck) {
-    for (let y = 0; y < i; y++) {
-      if(elementToCheck.includes(update[y])) {
-        return false;
+    if (elementToCheck) {
+      for (let y = 0; y < i; y++) {
+        if (elementToCheck.includes(update[y])) {
+          return false;
+        }
       }
     }
-    }
-
-    
   }
-return true
+  return true;
+};
+
+function topologicalSort(update: number[], rules: Rule[]): number[] {
+  const graph = new Map<number, number[]>(); // Adjacency list
+  const inDegree = new Map<number, number>(); // Tracks incoming edges
+
+  // Initialize the graph
+  update.forEach((page) => {
+    graph.set(page, []);
+    inDegree.set(page, 0);
+  });
+
+  // Build the graph based on rules
+  for (const [A, B] of rules) {
+    if (update.includes(A) && update.includes(B)) {
+      graph.get(A)!.push(B);
+      inDegree.set(B, (inDegree.get(B) || 0) + 1);
+    }
+  }
+
+  // Initialize the queue with nodes having in-degree of 0
+  const queue: number[] = [];
+  inDegree.forEach((count, node) => {
+    if (count === 0) queue.push(node);
+  });
+
+  const sorted: number[] = [];
+
+  // Process the nodes in topological order
+  while (queue.length > 0) {
+    const node = queue.shift()!;
+    sorted.push(node);
+
+    for (const neighbor of graph.get(node)!) {
+      inDegree.set(neighbor, inDegree.get(neighbor)! - 1);
+      if (inDegree.get(neighbor) === 0) {
+        queue.push(neighbor);
+      }
+    }
+  }
+
+  return sorted;
 }
 
 const resumeRules = (rules: Rule[]) => {
   return rules.reduce((acc, rule) => {
-    if(acc[rule[0]] === undefined) {
+    if (acc[rule[0]] === undefined) {
       acc[rule[0]] = [];
     }
     acc[rule[0]].push(rule[1]);
     return acc;
   }, {} as Record<number, number[]>);
-}
-
-const rearrangeList = (list: number[], index: number) => {
-  
-}
+};
 
 const part1 = (rawInput: string) => {
   const { rules, updates } = parseInput(rawInput);
   const resumedRules = resumeRules(rules);
 
-
   return updates.reduce((acc, update) => {
-    if(checkUpdate(resumedRules, update)) {
+    if (checkUpdate(resumedRules, update)) {
       return acc + getMiddlePage(update);
     }
     return acc;
-  }
-  , 0);
+  }, 0);
 };
 
 const part2 = (rawInput: string) => {
   const { rules, updates } = parseInput(rawInput);
   const resumedRules = resumeRules(rules);
 
-
-  const updateError = updates.reduce((acc, update) => {
-    if(!checkUpdate(resumedRules, update)) {
-      acc.push(update);
+  return updates.reduce((acc, update) => {
+    if (!checkUpdate(resumedRules, update)) {
+      const correctedUpdate = topologicalSort(update, rules);
+      acc += getMiddlePage(correctedUpdate);
     }
     return acc;
-  }, [] as number[][]);
-
-
+  }, 0);
 };
 
 run({
