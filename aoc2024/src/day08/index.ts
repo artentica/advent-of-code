@@ -50,7 +50,7 @@ function getAntinodeCoordonate(map: string[]): Set<string> {
         // Check if they're within bounds
         for (const [x, y] of [antinode1, antinode2]) {
           if (x >= 0 && x < width && y >= 0 && y < height) {
-            antinodePositions.add(`${x},${y},${freq}`);
+            antinodePositions.add(`${x},${y}`);
           }
         }
       }
@@ -103,7 +103,7 @@ function getAntinodeCoordonateWithResonnance(map: string[]): Set<string> {
           step++;
           for (const [x, y] of [antinode1, antinode2]) {
             if (x >= 0 && x < width && y >= 0 && y < height) {
-              antinodePositions.add(`${x},${y},${freq}`);
+              antinodePositions.add(`${x},${y}`);
             }
           }
         }
@@ -116,22 +116,14 @@ function getAntinodeCoordonateWithResonnance(map: string[]): Set<string> {
 
 const part1 = (rawInput: string) => {
   const input = parseInput(rawInput);
-  const antinodeWithFreq = getAntinodeCoordonate(input);
-  return Array.from(antinodeWithFreq).reduce((acc, curr) => {
-    const parts = curr.split(',');
-    acc.add(`${parts[0]}/${parts[1]}`);
-    return acc;
-  }, new Set<string>()).size;
+  const antinodesCoord = getAntinodeCoordonate(input);
+  return antinodesCoord.size;
 };
 
 const part2 = (rawInput: string) => {
   const input = parseInput(rawInput);
-  const antinodeWithFreq = getAntinodeCoordonateWithResonnance(input);
-  return Array.from(antinodeWithFreq).reduce((acc, curr) => {
-    const parts = curr.split(',');
-    acc.add(`${parts[0]}/${parts[1]}`);
-    return acc;
-  }, new Set<string>()).size;
+  const antinodesCoord = getAntinodeCoordonateWithResonnance(input);
+  return antinodesCoord.size;
 };
 
 run({
