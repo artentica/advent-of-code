@@ -27,59 +27,63 @@ function moveDiskParts(disk: (number | '.')[]) {
           break;
         }
       }
-    }    
+    }
   }
   return disk;
 }
 
-function checksum(disk: (number | '.')[]) {
+function checksum(disk: (number | '.')[], toTheEnd = false) {
   let sum = 0;
   for (let i = 0; i < disk.length; i++) {
     const element = disk[i];
-    if(element === '.') {
+    if (!toTheEnd && element === '.') {
       return sum;
+    } else if (element !== '.') {
+      sum += element * i;
     }
-    sum += element * i;
   }
   return sum;
 }
-function moveWholeFiles(disk: (number | '.')[]) {
-  // Étape 1 : Identifier les fichiers et leurs positions
-  const files: { id: number; start: number; length: number }[] = [];
-  let currentId = null;
-  let start = -1;
 
-  for (let i = 0; i < disk.length; i++) {
-    if (disk[i] !== '.' && disk[i] !== currentId) {
-      if (currentId !== null) {
-        files.push({ id: currentId as number, start, length: i - start });
+function arraymove(
+  arr: { size: number; space: number; id: number }[],
+  fromIndex: number,
+  toIndex: number,
+) {
+  var element = arr[fromIndex];
+  arr.splice(fromIndex, 1);
+  arr.splice(toIndex, 0, element);
+}
+
+function moveWholeFiles(disk: { size: number; space: number; id: number }[]) {
+  for (let i = disk.length - 1; i > 0; i--) {
+    const lastElement = disk[i];
+    for (let j = 0; j < disk.length; j++) {
+      const element = disk[j];
+      if (j === i) {
+        break;
       }
-      currentId = disk[i] as number;
-      start = i;
-    }
-  }
-  if (currentId !== null) {
-    files.push({ id: currentId as number, start, length: disk.length - start });
-  }
-
-  // Étape 2 : Déplacer les fichiers en ordre décroissant d'ID
-  files.sort((a, b) => b.id - a.id); // Trier par ID décroissant
-
-  for (const file of files) {
-    // Chercher un espace contigu suffisant à gauche
-    for (let i = 0; i < file.start; i++) {
-      const isSpaceAvailable = disk.slice(i, i + file.length).every((block) => block === '.');
-      if (isSpaceAvailable) {
-        // Déplacer le fichier entier
-        for (let j = 0; j < file.length; j++) {
-          disk[i + j] = file.id; // Copier le fichier
-          disk[file.start + j] = '.'; // Libérer l'ancienne position
-        }
-        break; // Passer au fichier suivant
+      if (element.space >= lastElement.size) {
+        disk[i - 1].space =
+          disk[i - 1].space + lastElement.size + lastElement.space;
+        lastElement.space = element.space - lastElement.size;
+        element.space = 0;
+        arraymove(disk, i, j + 1);
+        i++;
+        break;
       }
     }
   }
+  return disk;
+}
 
+function representationBlock(input: string) {
+  let disk: { size: number; space: number; id: number }[] = [];
+  for (let i = 0; i < input.length; i += 2) {
+    const fileLength = Number(input[i]);
+    const spaceLength = Number(input[i + 1]) || 0;
+    disk.push({ size: fileLength, space: spaceLength, id: i / 2 });
+  }
   return disk;
 }
 
@@ -92,9 +96,16 @@ const part1 = (rawInput: string) => {
 
 const part2 = (rawInput: string) => {
   const input = parseInput(rawInput);
-  const processedData = createRepresentation(input);
+  const processedData = representationBlock(input);
   const movedPart = moveWholeFiles(processedData);
-  return checksum(movedPart);
+
+  const representation = movedPart.reduce((acc, curr) => {
+    acc.push(...Array(curr.size).fill(curr.id));
+    acc.push(...Array(curr.space).fill('.'));
+    return acc;
+  }, new Array<number | '.'>());
+
+  return checksum(representation, true);
 };
 
 run({
