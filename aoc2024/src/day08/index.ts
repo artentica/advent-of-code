@@ -6,13 +6,6 @@ const parseInput = (rawInput: string) => {
   return rawInput.split('\n');
 };
 
-function replaceCharAtIndex(str: string, index: number, newChar: string) {
-  if (index < 0 || index >= str.length) {
-    throw new Error('Index out of bounds');
-  }
-  return str.slice(0, index) + newChar + str.slice(index + 1);
-}
-
 function getAntinodeCoordonate(map: string[]): Set<string> {
   const height = map.length;
   const width = map[0].length;
