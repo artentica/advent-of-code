@@ -62,7 +62,7 @@ const part1 = (rawInput: string) => {
 };
 
 const part2 = (rawInput: string) => {
-  const offset = 10000000000000;
+  const offset = 10_000_000_000_000;
   const input = parseInput(rawInput);
   const modiefiedInput = input.map(([a, b, prize]) => [
     a,
